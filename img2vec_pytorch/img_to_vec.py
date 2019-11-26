@@ -67,7 +67,7 @@ class Img2Vec():
             if self.model_name == 'alexnet':
                 my_embedding = torch.zeros(1, self.layer_output_size)
             else:
-                my_embedding = torch.zeros(1, self.layer_output_size, 1, 1)
+                my_embedding = torch.zeros(1, self.layer_output_size, self.channels, self.channels)
 
             def copy_data(m, i, o):
                 my_embedding.copy_(o.data)
