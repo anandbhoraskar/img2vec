@@ -76,6 +76,8 @@ class Img2Vec():
             h_x = self.model(image)
             h.remove()
 
+            my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
+
             if tensor:
                 return my_embedding
             else:
