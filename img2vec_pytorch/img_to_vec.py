@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 import torchvision.transforms as transforms
 import numpy as np
 
 class Img2Vec():
 
-    def __init__(self, cuda=False, model='resnet-18', layer='default', layer_output_size=512):
+    def __init__(self, cuda=False, model='resnet-18', layer='default', layer_output_size=512, channels=1):
         """ Img2Vec
         :param cuda: If set to True, will run forward pass on GPU
         :param model: String name of requested model
@@ -27,6 +28,7 @@ class Img2Vec():
         self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                               std=[0.229, 0.224, 0.225])
         self.to_tensor = transforms.ToTensor()
+        self.channels = channels
 
     def get_vec(self, img, tensor=False):
         """ Get vector embedding from PIL image
@@ -40,7 +42,7 @@ class Img2Vec():
             if self.model_name == 'alexnet':
                 my_embedding = torch.zeros(len(img), self.layer_output_size)
             else:
-                my_embedding = torch.zeros(len(img), self.layer_output_size, 1, 1)
+                my_embedding = torch.zeros(len(img), self.layer_output_size, channels, channels)
 
             def copy_data(m, i, o):
                 my_embedding.copy_(o.data)
@@ -48,6 +50,8 @@ class Img2Vec():
             h = self.extraction_layer.register_forward_hook(copy_data)
             h_x = self.model(images)
             h.remove()
+
+            my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
 
             if tensor:
                 return my_embedding
