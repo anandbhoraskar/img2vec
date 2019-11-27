@@ -8,7 +8,7 @@ import numpy as np
 class Img2Vec():
 
     def __init__(self, cuda=False, model='resnet-18', layer='default',
-                 layer_output_size=512, channels=1, return_embedding=False
+                 layer_output_size=512, channels=1, return_embedding=False,
                  centre_crop=False):
         """ Img2Vec
         :param cuda: If set to True, will run forward pass on GPU
