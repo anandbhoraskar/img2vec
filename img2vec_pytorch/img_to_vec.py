@@ -7,7 +7,8 @@ import numpy as np
 
 class Img2Vec():
 
-    def __init__(self, cuda=False, model='resnet-18', layer='default', layer_output_size=512, channels=1):
+    def __init__(self, cuda=False, model='resnet-18', layer='default',
+                 layer_output_size=512, channels=1, return_embedding=False):
         """ Img2Vec
         :param cuda: If set to True, will run forward pass on GPU
         :param model: String name of requested model
@@ -29,6 +30,7 @@ class Img2Vec():
                                               std=[0.229, 0.224, 0.225])
         self.to_tensor = transforms.ToTensor()
         self.channels = channels
+        self.return_embedding = return_embedding
 
     def get_vec(self, img, tensor=False):
         """ Get vector embedding from PIL image
@@ -75,6 +77,9 @@ class Img2Vec():
             h = self.extraction_layer.register_forward_hook(copy_data)
             h_x = self.model(image)
             h.remove()
+
+            if self.return_embedding:
+                return my_embedding
 
             my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
 
