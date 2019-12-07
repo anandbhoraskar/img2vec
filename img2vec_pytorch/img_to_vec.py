@@ -105,7 +105,6 @@ class Img2Vec():
             model = models.resnet18(pretrained=True)
             if layer == 'default':
                 layer = model._modules.get('avgpool')
-                self.layer_output_size = 512
             else:
                 layer = model._modules.get(layer)
 
@@ -115,7 +114,6 @@ class Img2Vec():
             model = models.resnet50(pretrained=True)
             if layer == 'default':
                 layer = model._modules.get('avgpool')
-                self.layer_output_size = 512
             else:
                 layer = model._modules.get(layer)
 
