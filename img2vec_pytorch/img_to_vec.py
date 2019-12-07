@@ -7,7 +7,7 @@ import numpy as np
 
 class Img2Vec():
 
-    def __init__(self, cuda=False, model='resnet-18', layer='default',
+    def __init__(self, cuda=False, model='resnet-50', layer='default',
                  layer_output_size=512, channels=1, return_embedding=False,
                  centre_crop=False):
         """ Img2Vec
@@ -103,6 +103,16 @@ class Img2Vec():
         """
         if model_name == 'resnet-18':
             model = models.resnet18(pretrained=True)
+            if layer == 'default':
+                layer = model._modules.get('avgpool')
+                self.layer_output_size = 512
+            else:
+                layer = model._modules.get(layer)
+
+            return model, layer
+        
+        if model_name == 'resnet-50':
+            model = models.resnet50(pretrained=True)
             if layer == 'default':
                 layer = model._modules.get('avgpool')
                 self.layer_output_size = 512
