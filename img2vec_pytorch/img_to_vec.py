@@ -45,15 +45,10 @@ class Img2Vec():
 
         image = self.normalize(self.to_tensor(self.scaler(img))).unsqueeze(0).to(self.device)
 
-        # if self.model_name == 'alexnet':
-        #     my_embedding = torch.zeros(1, self.layer_output_size)
-        # else:
-        #     my_embedding = torch.zeros(1, self.layer_output_size, self.channels, self.channels)
-        my_embedding = 0
-
         def copy_data(m, i, o):
+
+            global my_embedding
             my_embedding = o.data.clone()
-            # .copy_(o.data)
 
         h = self.extraction_layer.register_forward_hook(copy_data)
         h_x = self.model(image)
@@ -67,10 +62,7 @@ class Img2Vec():
         if tensor:
             return my_embedding
         else:
-            if self.model_name == 'alexnet':
-                return my_embedding.numpy()[0, :]
-            else:
-                return my_embedding.numpy()[0, :, 0, 0]
+            return my_embedding.numpy()[0, :, 0, 0]
 
     def _get_model_and_layer(self, model_name, layer):
         """ Internal method for getting layer from model
