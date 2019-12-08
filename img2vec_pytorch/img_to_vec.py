@@ -42,58 +42,35 @@ class Img2Vec():
         :param tensor: If True, get_vec will return a FloatTensor instead of Numpy array
         :returns: Numpy ndarray
         """
-        if type(img) == list:
-            a = [self.normalize(self.to_tensor(self.scaler(im))) for im in img]
-            images = torch.stack(a).to(self.device) 
-            if self.model_name == 'alexnet':
-                my_embedding = torch.zeros(len(img), self.layer_output_size)
-            else:
-                my_embedding = torch.zeros(len(img), self.layer_output_size, self.channels, self.channels)
 
-            def copy_data(m, i, o):
-                my_embedding.copy_(o.data)
+        image = self.normalize(self.to_tensor(self.scaler(img))).unsqueeze(0).to(self.device)
 
-            h = self.extraction_layer.register_forward_hook(copy_data)
-            h_x = self.model(images)
-            h.remove()
+        # if self.model_name == 'alexnet':
+        #     my_embedding = torch.zeros(1, self.layer_output_size)
+        # else:
+        #     my_embedding = torch.zeros(1, self.layer_output_size, self.channels, self.channels)
+        my_embedding = 0
 
-            my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
+        def copy_data(m, i, o):
+            my_embedding = o.data.copy()
+            # .copy_(o.data)
 
-            if tensor:
-                return my_embedding
-            else:
-                if self.model_name == 'alexnet':
-                    return my_embedding.numpy()[:, :]
-                else:
-                    print(my_embedding.numpy()[:, :, 0, 0].shape)
-                    return my_embedding.numpy()[:, :, 0, 0]
+        h = self.extraction_layer.register_forward_hook(copy_data)
+        h_x = self.model(image)
+        h.remove()
+
+        if self.return_embedding:
+            return my_embedding
+
+        my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
+
+        if tensor:
+            return my_embedding
         else:
-            image = self.normalize(self.to_tensor(self.scaler(img))).unsqueeze(0).to(self.device)
-
             if self.model_name == 'alexnet':
-                my_embedding = torch.zeros(1, self.layer_output_size)
+                return my_embedding.numpy()[0, :]
             else:
-                my_embedding = torch.zeros(1, self.layer_output_size, self.channels, self.channels)
-
-            def copy_data(m, i, o):
-                my_embedding.copy_(o.data)
-
-            h = self.extraction_layer.register_forward_hook(copy_data)
-            h_x = self.model(image)
-            h.remove()
-
-            if self.return_embedding:
-                return my_embedding
-
-            my_embedding = F.adaptive_avg_pool2d(my_embedding, (1, 1))
-
-            if tensor:
-                return my_embedding
-            else:
-                if self.model_name == 'alexnet':
-                    return my_embedding.numpy()[0, :]
-                else:
-                    return my_embedding.numpy()[0, :, 0, 0]
+                return my_embedding.numpy()[0, :, 0, 0]
 
     def _get_model_and_layer(self, model_name, layer):
         """ Internal method for getting layer from model
@@ -116,16 +93,6 @@ class Img2Vec():
                 layer = model._modules.get('avgpool')
             else:
                 layer = model._modules.get(layer)
-
-            return model, layer
-
-        elif model_name == 'alexnet':
-            model = models.alexnet(pretrained=True)
-            if layer == 'default':
-                layer = model.classifier[-2]
-                self.layer_output_size = 4096
-            else:
-                layer = model.classifier[-layer]
 
             return model, layer
 
