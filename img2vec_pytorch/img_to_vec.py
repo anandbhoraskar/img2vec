@@ -52,7 +52,7 @@ class Img2Vec():
         my_embedding = 0
 
         def copy_data(m, i, o):
-            my_embedding = o.data.copy()
+            my_embedding = o.data.clone()
             # .copy_(o.data)
 
         h = self.extraction_layer.register_forward_hook(copy_data)
